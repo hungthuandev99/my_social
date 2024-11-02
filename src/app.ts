@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Route } from "./core/interfaces";
 import express from "express";
 
@@ -11,6 +12,7 @@ class App {
         this.port = process.env.PORT || 3000;
 
         this.initializeRoutes(routes);
+        this.connectToDatabase();
     }
 
     public listen() {
@@ -23,6 +25,21 @@ class App {
         routes.forEach(route => {
             this.app.use('/', route.router);
         });
+    }
+
+    private connectToDatabase() {
+        try {
+            const connectString = process.env.MONGODB_URI;
+            if (!connectString) {
+                console.log('Connect string invalid');
+                return;
+            }
+            mongoose.connect(connectString);
+            console.log('Database connected');
+
+        } catch (error) {
+            console.log('Connect to database error');
+        }
     }
 }
 
