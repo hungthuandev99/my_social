@@ -2,7 +2,6 @@ import { DataStoredInToken, TokenData } from "@modules/auth";
 import { UserSchema, IUser } from "@modules/users";
 import { isEmptyObject } from "@core/utils";
 import { HttpException } from "@core/exceptions";
-import gravatar from "gravatar";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import LoginDTO from "./dtos/login.dto";
@@ -15,7 +14,7 @@ class AuthSerivce {
       throw new HttpException(400, "Model is empty");
     }
 
-    const user = await this.userSchema.findOne({ email: model.email });
+    const user = await this.userSchema.findOne({ email: model.email }).exec();
     if (!user) {
       throw new HttpException(400, `Your email ${model.email} is not exist.`);
     }
@@ -31,7 +30,7 @@ class AuthSerivce {
   }
 
   public async getCurrentLoginUser(userId: string): Promise<IUser> {
-    const user = await this.userSchema.findById(userId);
+    const user = await this.userSchema.findById(userId).exec();
     if (!user) {
       throw new HttpException(404, "User is not exist");
     }

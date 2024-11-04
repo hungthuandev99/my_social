@@ -1,7 +1,7 @@
 import { Route } from "@core/interfaces";
 import { Router } from "express";
 import UsersController from "./users.controller";
-import { validationInputMiddleware } from "@core/middleware";
+import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import RegisterDTO from "./dtos/register.dto";
 
 export default class UsersRoute implements Route {
@@ -19,6 +19,17 @@ export default class UsersRoute implements Route {
       this.path,
       validationInputMiddleware(RegisterDTO, true),
       this.userController.register
+    );
+    this.router.get(
+      this.path + "/:id",
+      authMiddleware,
+      this.userController.getUserById
+    );
+    this.router.put(
+      this.path + "/:id",
+      authMiddleware,
+      validationInputMiddleware(RegisterDTO, true),
+      this.userController.updateUser
     );
   }
 }

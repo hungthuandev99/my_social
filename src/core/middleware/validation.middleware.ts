@@ -11,12 +11,13 @@ const validationInputMiddleware = (
     validate(`${type} validate`, plainToClass(type, req.body), {
       skipMissingProperties: skipMissingProperty,
     }).then((errors: ValidationError[]) => {
-      console.log(errors);
       if (errors.length > 0) {
         const message = errors
           .map((error) => Object.values(error.constraints!))
           .join(",");
         next(new HttpException(400, message));
+      } else {
+        next();
       }
     });
   };

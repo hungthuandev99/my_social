@@ -16,7 +16,7 @@ class UserService {
       throw new HttpException(400, "Model is empty");
     }
 
-    const user = await this.userSchema.findOne({ email: model.email });
+    const user = await this.userSchema.findOne({ email: model.email }).exec();
     if (user) {
       throw new HttpException(409, `Your email ${model.email} already exist.`);
     }
@@ -36,6 +36,47 @@ class UserService {
       date: Date.now(),
     });
     return this.createToken(createdUser);
+  }
+
+  public async getUserById(userId: string): Promise<IUser> {
+    const user = await this.userSchema.findById(userId).exec();
+    if (!user) {
+      throw new HttpException(404, "User is not exist");
+    }
+
+    return user;
+  }
+
+  public async updateUser(userId: string, model: RegisterDTO): Promise<IUser> {
+    if (isEmptyObject(model)) {
+      throw new HttpException(400, "Model is empty");
+    }
+
+    const user = await this.userSchema.findById(userId).exec();
+    if (!user) {
+      throw new HttpException(400, `User is not exist.`);
+    }
+
+    let updateUserId;
+    if (model.password) {
+      const salt = await bcryptjs.genSalt(10);
+      const hashedPassword = await bcryptjs.hash(model.password!, salt);
+      updateUserId = await this.userSchema
+        .findByIdAndUpdate(userId, {
+          ...model,
+          password: hashedPassword,
+        })
+        .exec();
+    } else {
+      updateUserId = await this.userSchema
+        .findByIdAndUpdate(userId, model)
+        .exec();
+    }
+
+    if (!updateUserId) {
+      throw new HttpException(409, "Some thing when wrong");
+    }
+    return updateUserId;
   }
 
   private createToken(user: IUser): TokenData {
