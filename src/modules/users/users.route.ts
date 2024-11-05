@@ -31,5 +31,6 @@ export default class UsersRoute implements Route {
       validationInputMiddleware(RegisterDTO, true),
       this.userController.updateUser
     );
+    this.router.get(this.path, authMiddleware, this.userController.getAllUser);
   }
 }

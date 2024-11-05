@@ -43,4 +43,19 @@ export default class UsersController {
       next(error);
     }
   };
+
+  public getAllUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const page = Number(req.query.page || 1);
+      const keyword = req.query.keyword?.toString();
+      const users = await this.userService.getAllUser(page, keyword);
+      res.status(200).json(new Result(users));
+    } catch (error) {
+      next(error);
+    }
+  };
 }
