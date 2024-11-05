@@ -8,6 +8,7 @@ import bcryptjs from "bcryptjs";
 import IUser from "./user.interface";
 import jwt from "jsonwebtoken";
 import { IPagination } from "@core/interfaces";
+import { email } from "envalid";
 
 class UserService {
   public userSchema = UserSchema;
@@ -90,9 +91,9 @@ class UserService {
     if (keyword) {
       query = {
         $or: [
-          { email: keyword },
-          { first_name: keyword },
-          { last_name: keyword },
+          { email: { $regex: `.*${keyword}.*` } },
+          { first_name: { $regex: `.*${keyword}.*` } },
+          { last_name: { $regex: `.*${keyword}.*` } },
         ],
       };
     }
@@ -111,6 +112,14 @@ class UserService {
       pageSize: pageSize,
       items: users,
     };
+  }
+
+  public async deleteUser(userId: string): Promise<IUser> {
+    const deletedUser = await this.userSchema.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      throw new HttpException(400, "User is not exist");
+    }
+    return deletedUser;
   }
 
   private createToken(user: IUser): TokenData {
