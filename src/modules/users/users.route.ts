@@ -8,7 +8,7 @@ export default class UsersRoute implements Route {
   public path = "/api/users";
   public router = Router();
 
-  public userController = new UsersController();
+  public controller = new UsersController();
 
   constructor() {
     this.initializeRoutes();
@@ -18,24 +18,24 @@ export default class UsersRoute implements Route {
     this.router.post(
       this.path,
       validationInputMiddleware(RegisterDTO, true),
-      this.userController.register
+      this.controller.register
     );
     this.router.get(
       this.path + "/:id",
       authMiddleware,
-      this.userController.getUserById
+      this.controller.getUserById
     );
     this.router.put(
       this.path + "/:id",
       authMiddleware,
       validationInputMiddleware(RegisterDTO, true),
-      this.userController.updateUser
+      this.controller.updateUser
     );
-    this.router.get(this.path, authMiddleware, this.userController.getAllUser);
+    this.router.get(this.path, authMiddleware, this.controller.getAllUser);
     this.router.delete(
       this.path + "/:id",
       authMiddleware,
-      this.userController.deleteUser
+      this.controller.deleteUser
     );
   }
 }

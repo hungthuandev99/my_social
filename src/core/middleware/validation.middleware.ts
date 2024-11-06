@@ -8,7 +8,7 @@ const validationInputMiddleware = (
   skipMissingProperty = false
 ): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
-    validate(`${type} validate`, plainToClass(type, req.body), {
+    validate(plainToClass(type, req.body), {
       skipMissingProperties: skipMissingProperty,
     }).then((errors: ValidationError[]) => {
       if (errors.length > 0) {

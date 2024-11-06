@@ -8,7 +8,6 @@ import bcryptjs from "bcryptjs";
 import IUser from "./user.interface";
 import jwt from "jsonwebtoken";
 import { IPagination } from "@core/interfaces";
-import { email } from "envalid";
 
 class UserService {
   public userSchema = UserSchema;
@@ -59,26 +58,45 @@ class UserService {
       throw new HttpException(400, `User is not exist.`);
     }
 
-    let updateUserId;
+    const existUsers = await this.userSchema
+      .find({
+        $and: [
+          { email: { $eq: model.email } },
+          {
+            _id: { $ne: userId },
+          },
+        ],
+      })
+      .exec();
+
+    if (existUsers.length !== 0) {
+      throw new HttpException(400, "Your email has been used by another user");
+    }
+
+    let updatedUser;
     if (model.password) {
       const salt = await bcryptjs.genSalt(10);
       const hashedPassword = await bcryptjs.hash(model.password!, salt);
-      updateUserId = await this.userSchema
-        .findByIdAndUpdate(userId, {
-          ...model,
-          password: hashedPassword,
-        })
+      updatedUser = await this.userSchema
+        .findByIdAndUpdate(
+          userId,
+          {
+            ...model,
+            password: hashedPassword,
+          },
+          { new: true }
+        )
         .exec();
     } else {
-      updateUserId = await this.userSchema
-        .findByIdAndUpdate(userId, model)
+      updatedUser = await this.userSchema
+        .findByIdAndUpdate(userId, model, { new: true })
         .exec();
     }
 
-    if (!updateUserId) {
+    if (!updatedUser) {
       throw new HttpException(409, "Some thing when wrong");
     }
-    return updateUserId;
+    return updatedUser;
   }
 
   public async getAllUser(
@@ -115,7 +133,7 @@ class UserService {
   }
 
   public async deleteUser(userId: string): Promise<IUser> {
-    const deletedUser = await this.userSchema.findByIdAndDelete(userId);
+    const deletedUser = await this.userSchema.findByIdAndDelete(userId).exec();
     if (!deletedUser) {
       throw new HttpException(400, "User is not exist");
     }
