@@ -3,8 +3,14 @@ import ProfileSchema from "./profile.model";
 import { HttpException } from "@core/exceptions";
 import CreateProfileDTO from "./dtos/create_profile.dto";
 import normalizeUrl from "normalize-url";
-import { ISocial, IProfile, IExperience } from "./profile.interface";
+import {
+  ISocial,
+  IProfile,
+  IExperience,
+  IEducation,
+} from "./profile.interface";
 import AddExperienceDTO from "./dtos/add_experience.dto";
+import AddEducationDTO from "./dtos/add_education.dto";
 
 class ProfileService {
   public profileSchema = ProfileSchema;
@@ -121,6 +127,40 @@ class ProfileService {
     }
     profile.experiences = profile.experiences.filter(
       (exp) => exp._id.toString() !== experienceId
+    );
+    await profile.save();
+    return profile;
+  }
+
+  public async addEducation(
+    userId: string,
+    education: AddEducationDTO
+  ): Promise<IProfile> {
+    const { school, degree, field_of_study, from, to, current, description } =
+      education;
+    const newEducation = {
+      ...education,
+    };
+
+    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    if (!profile) {
+      throw new HttpException(400, "There is not profile for this user");
+    }
+    profile.educations.unshift(newEducation as IEducation);
+    await profile.save();
+    return profile;
+  }
+
+  public async deleteEducation(
+    userId: string,
+    educationId: string
+  ): Promise<IProfile> {
+    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    if (!profile) {
+      throw new HttpException(400, "There is not profile for this user");
+    }
+    profile.educations = profile.educations.filter(
+      (edu) => edu._id.toString() !== educationId
     );
     await profile.save();
     return profile;

@@ -4,6 +4,7 @@ import ProfileController from "./profile.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreateProfileDTO from "./dtos/create_profile.dto";
 import AddExperienceDTO from "./dtos/add_experience.dto";
+import AddEducationDTO from "./dtos/add_education.dto";
 
 export default class ProfileRoute implements Route {
   public path = "/api/profile";
@@ -47,6 +48,19 @@ export default class ProfileRoute implements Route {
       this.path + "/experience/:exp_id",
       authMiddleware,
       this.controller.deleteExperience
+    );
+
+    this.router.put(
+      this.path + "/education",
+      authMiddleware,
+      validationInputMiddleware(AddEducationDTO),
+      this.controller.createEducation
+    );
+
+    this.router.delete(
+      this.path + "/education/:edu_id",
+      authMiddleware,
+      this.controller.deleteEducation
     );
   }
 }
