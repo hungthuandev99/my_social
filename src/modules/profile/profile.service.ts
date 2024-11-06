@@ -3,7 +3,8 @@ import ProfileSchema from "./profile.model";
 import { HttpException } from "@core/exceptions";
 import CreateProfileDTO from "./dtos/create_profile.dto";
 import normalizeUrl from "normalize-url";
-import { ISocial, IProfile } from "./profile.interface";
+import { ISocial, IProfile, IExperience } from "./profile.interface";
+import AddExperienceDTO from "./dtos/add_experience.dto";
 
 class ProfileService {
   public profileSchema = ProfileSchema;
@@ -89,6 +90,40 @@ class ProfileService {
   public async deleteProfile(userId: string): Promise<void> {
     await this.profileSchema.findOneAndDelete({ user: userId }).exec();
     await this.userSchema.findOneAndDelete({ _id: userId }).exec();
+  }
+
+  public async addExperience(
+    userId: string,
+    experience: AddExperienceDTO
+  ): Promise<IProfile> {
+    const { title, company, location, from, to, current, description } =
+      experience;
+    const newExperience = {
+      ...experience,
+    };
+
+    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    if (!profile) {
+      throw new HttpException(400, "There is not profile for this user");
+    }
+    profile.experiences.unshift(newExperience as IExperience);
+    await profile.save();
+    return profile;
+  }
+
+  public async deleteExperience(
+    userId: string,
+    experienceId: string
+  ): Promise<IProfile> {
+    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    if (!profile) {
+      throw new HttpException(400, "There is not profile for this user");
+    }
+    profile.experiences = profile.experiences.filter(
+      (exp) => exp._id.toString() !== experienceId
+    );
+    await profile.save();
+    return profile;
   }
 }
 

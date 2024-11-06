@@ -4,6 +4,7 @@ import { Result } from "@core/utils";
 import { IProfile } from "./profile.interface";
 import { IUser } from "@modules/users";
 import CreateProfileDTO from "./dtos/create_profile.dto";
+import AddExperienceDTO from "./dtos/add_experience.dto";
 
 export default class ProfileController {
   private profileService = new ProfileService();
@@ -63,6 +64,41 @@ export default class ProfileController {
     try {
       await this.profileService.deleteProfile(req.params.id);
       res.status(200).json(new Result(true));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public createExperience = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user.id;
+      const experienceData: AddExperienceDTO = req.body;
+      const profile: IProfile = await this.profileService.addExperience(
+        userId,
+        experienceData
+      );
+      res.status(200).json(new Result(profile));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleteExperience = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const exp_id = req.params.exp_id;
+      const profile: IProfile = await this.profileService.deleteExperience(
+        req.user.id,
+        exp_id
+      );
+      res.status(200).json(new Result(profile));
     } catch (error) {
       next(error);
     }

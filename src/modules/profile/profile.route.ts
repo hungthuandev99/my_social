@@ -3,6 +3,7 @@ import { Router } from "express";
 import ProfileController from "./profile.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreateProfileDTO from "./dtos/create_profile.dto";
+import AddExperienceDTO from "./dtos/add_experience.dto";
 
 export default class ProfileRoute implements Route {
   public path = "/api/profile";
@@ -33,6 +34,19 @@ export default class ProfileRoute implements Route {
       this.path + "/:id",
       authMiddleware,
       this.controller.deleteProfile
+    );
+
+    this.router.put(
+      this.path + "/experience",
+      authMiddleware,
+      validationInputMiddleware(AddExperienceDTO),
+      this.controller.createExperience
+    );
+
+    this.router.delete(
+      this.path + "/experience/:exp_id",
+      authMiddleware,
+      this.controller.deleteExperience
     );
   }
 }
