@@ -1,4 +1,3 @@
-import { email } from "envalid";
 import mongoose from "mongoose";
 import IUser from "./user.interface";
 

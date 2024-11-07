@@ -136,8 +136,6 @@ class ProfileService {
     userId: string,
     education: AddEducationDTO
   ): Promise<IProfile> {
-    const { school, degree, field_of_study, from, to, current, description } =
-      education;
     const newEducation = {
       ...education,
     };
