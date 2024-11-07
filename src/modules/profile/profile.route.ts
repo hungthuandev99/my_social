@@ -7,7 +7,7 @@ import AddExperienceDTO from "./dtos/add_experience.dto";
 import AddEducationDTO from "./dtos/add_education.dto";
 
 export default class ProfileRoute implements Route {
-  public path = "/api/profile";
+  public path = "/profile";
   public router = Router();
   public controller = new ProfileController();
   constructor() {

@@ -4,7 +4,7 @@ import AuthController from "./auth.controller";
 import { authMiddleware } from "@core/middleware";
 
 export default class AuthRoute implements Route {
-  public path = "/api/auth";
+  public path = "/auth";
   public router = Router();
 
   public authController = new AuthController();

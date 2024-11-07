@@ -5,7 +5,7 @@ import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreatePostDTO from "./dtos/create_post.dto";
 
 export default class PostRoute implements Route {
-  public path = "/api/posts";
+  public path = "/posts";
   public router = Router();
   public controller = new PostController();
   constructor() {

@@ -5,7 +5,7 @@ import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import RegisterDTO from "./dtos/register.dto";
 
 export default class UsersRoute implements Route {
-  public path = "/api/users";
+  public path = "/users";
   public router = Router();
 
   public controller = new UsersController();
