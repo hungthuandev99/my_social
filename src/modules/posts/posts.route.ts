@@ -13,6 +13,16 @@ export default class PostRoute implements Route {
   }
 
   private initializeRoutes() {
+    this.router.get(
+      this.path,
+      authMiddleware,
+      this.controller.getAllPostFilter
+    );
+    this.router.get(
+      this.path + "/:id",
+      authMiddleware,
+      this.controller.getPostById
+    );
     this.router.post(
       this.path,
       authMiddleware,
@@ -24,6 +34,11 @@ export default class PostRoute implements Route {
       authMiddleware,
       validationInputMiddleware(CreatePostDTO),
       this.controller.updatePost
+    );
+    this.router.delete(
+      this.path + "/:id",
+      authMiddleware,
+      this.controller.deletePost
     );
   }
 }
