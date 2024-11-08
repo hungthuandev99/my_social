@@ -77,4 +77,57 @@ export default class PostController {
       next(error);
     }
   };
+
+  public likePost = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user.id;
+      const postId = req.params.id;
+      const likes = await this.postService.likePost(userId, postId);
+      res.status(200).json(new Result(likes));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public createComment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user.id;
+      const postId = req.params.id;
+      const comment = req.body;
+      const result = await this.postService.createComment(
+        userId,
+        postId,
+        comment
+      );
+
+      res.status(200).json(new Result(result));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleleComment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user.id;
+      const postId = req.params.post_id;
+      const commentId = req.params.comment_id;
+
+      const result = await this.postService.deleteComment(
+        userId,
+        postId,
+        commentId
+      );
+      res.status(200).json(new Result(result));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

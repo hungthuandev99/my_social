@@ -1,13 +1,15 @@
 import { HttpException } from "@core/exceptions";
 import CreatePostDTO from "./dtos/create_post.dto";
-import { IPost } from "./posts.interface";
+import { IComment, ILike, IPost } from "./posts.interface";
 import PostSchema from "./posts.model";
 import { UserSchema } from "@modules/users";
 import { IPagination } from "@core/interfaces";
+import CreateCommentDTO from "./dtos/create_comment.dto";
 
 export default class PostService {
   public postSchema = PostSchema;
   public userSchema = UserSchema;
+  private selectField = ["first_name", "last_name", "avatar"];
 
   public async createPost(
     userId: string,
@@ -28,7 +30,7 @@ export default class PostService {
     });
 
     const post = await newPost.save();
-    return post;
+    return post.populate("user", this.selectField);
   }
 
   public async updatePost(
@@ -37,6 +39,20 @@ export default class PostService {
   ): Promise<IPost> {
     const post = await this.postSchema
       .findByIdAndUpdate(postId, { ...postDTO }, { new: true })
+      .populate([
+        {
+          path: "user",
+          select: this.selectField,
+        },
+        {
+          path: "likes",
+          populate: { path: "user", select: this.selectField },
+        },
+        {
+          path: "comments",
+          populate: { path: "user", select: this.selectField },
+        },
+      ])
       .exec();
     if (!post) {
       throw new HttpException(400, "Post is not found");
@@ -45,7 +61,23 @@ export default class PostService {
   }
 
   public async getPostById(postId: string): Promise<IPost> {
-    const post = await this.postSchema.findById(postId).exec();
+    const post = await this.postSchema
+      .findById(postId)
+      .populate([
+        {
+          path: "user",
+          select: this.selectField,
+        },
+        {
+          path: "likes",
+          populate: { path: "user", select: this.selectField },
+        },
+        {
+          path: "comments",
+          populate: { path: "user", select: this.selectField },
+        },
+      ])
+      .exec();
     if (!post) {
       throw new HttpException(404, "This post is not found");
     }
@@ -64,10 +96,24 @@ export default class PostService {
       query = { text: { $regex: `.*${keyword}.*` } };
     }
 
-    const users = await this.postSchema
+    const posts = await this.postSchema
       .find(query)
       .skip(pageSize * (page - 1))
       .limit(pageSize)
+      .populate([
+        {
+          path: "user",
+          select: this.selectField,
+        },
+        {
+          path: "likes",
+          populate: { path: "user", select: this.selectField },
+        },
+        {
+          path: "comments",
+          populate: { path: "user", select: this.selectField },
+        },
+      ])
       .exec();
 
     const rowCount = await this.postSchema.find(query).countDocuments().exec();
@@ -76,12 +122,28 @@ export default class PostService {
       total: rowCount,
       page: page,
       pageSize: pageSize,
-      items: users,
+      items: posts,
     };
   }
 
   public async deletePost(userId: string, postId: string): Promise<IPost> {
-    const post = await this.postSchema.findById(postId).exec();
+    const post = await this.postSchema
+      .findById(postId)
+      .populate([
+        {
+          path: "user",
+          select: this.selectField,
+        },
+        {
+          path: "likes",
+          populate: { path: "user", select: this.selectField },
+        },
+        {
+          path: "comments",
+          populate: { path: "user", select: this.selectField },
+        },
+      ])
+      .exec();
     if (!post) {
       throw new HttpException(400, "Post is not found");
     }
@@ -92,5 +154,86 @@ export default class PostService {
 
     await post.deleteOne();
     return post;
+  }
+
+  public async likePost(userId: string, postId: string): Promise<ILike[]> {
+    const post = await this.postSchema
+      .findById(postId)
+      .populate("user", ["last_name", "first_name", "avatar"])
+      .exec();
+    if (!post) {
+      throw new HttpException(400, "Post is not found");
+    }
+
+    if (post.likes.some((like: ILike) => like.user.toString() === userId)) {
+      post.likes = post.likes.filter(({ user }) => user.toString() !== userId);
+    } else {
+      post.likes.unshift({ user: userId });
+    }
+
+    await post.save();
+    return post.likes;
+  }
+
+  public async createComment(
+    userId: string,
+    postId: string,
+    comment: CreateCommentDTO
+  ): Promise<IComment[]> {
+    const post = await this.postSchema.findById(postId).exec();
+    if (!post) {
+      throw new HttpException(400, "This post is not found");
+    }
+
+    const newComment = {
+      user: userId,
+      text: comment.text,
+    };
+
+    post.comments.unshift(newComment as IComment);
+    await post.save();
+    await post.populate({
+      path: "comments",
+      populate: {
+        path: "user",
+        select: this.selectField,
+      },
+    });
+    return post.comments;
+  }
+
+  public async deleteComment(
+    userId: string,
+    postId: String,
+    commentId: string
+  ): Promise<IComment[]> {
+    const post = await this.postSchema.findById(postId).exec();
+    if (!post) {
+      throw new HttpException(400, "Post is not found");
+    }
+
+    const comment = await post.comments.find(
+      (cmt) => cmt._id.toString() === commentId
+    );
+    if (!comment) {
+      throw new HttpException(400, "Comment is not exist");
+    }
+
+    if (comment.user.toString() !== userId || post.user.toString() !== userId) {
+      throw new HttpException(400, "You can not remove this comment");
+    }
+
+    post.comments = post.comments.filter(
+      ({ _id }) => _id.toString() !== commentId
+    );
+    await post.save();
+    await post.populate({
+      path: "comments",
+      populate: {
+        path: "user",
+        select: this.selectField,
+      },
+    });
+    return post.comments;
   }
 }

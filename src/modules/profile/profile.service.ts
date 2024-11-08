@@ -19,7 +19,7 @@ class ProfileService {
   public async getCurrentProfile(userId: string): Promise<Partial<IUser>> {
     const user = await this.profileSchema
       .findOne({ user: userId })
-      .populate("user", ["name", "avatar"]);
+      .populate("user", ["last_name", "first_name", "avatar"]);
     console.log(user);
 
     if (!user) {

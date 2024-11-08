@@ -40,5 +40,23 @@ export default class PostRoute implements Route {
       authMiddleware,
       this.controller.deletePost
     );
+
+    this.router.put(
+      this.path + "/like/:id",
+      authMiddleware,
+      this.controller.likePost
+    );
+
+    this.router.put(
+      this.path + "/comment/:id",
+      authMiddleware,
+      this.controller.createComment
+    );
+
+    this.router.delete(
+      this.path + "/comment/:post_id/:comment_id",
+      authMiddleware,
+      this.controller.deleleComment
+    );
   }
 }

@@ -4,7 +4,7 @@ import { IPost } from "./posts.interface";
 const PostSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: "users",
   },
   text: {
     type: String,
@@ -16,6 +16,7 @@ const PostSchema = new mongoose.Schema({
     {
       user: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
       },
     },
   ],
@@ -23,13 +24,12 @@ const PostSchema = new mongoose.Schema({
     {
       user: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
       },
       text: {
         type: String,
         require: true,
       },
-      name: String,
-      avatar: String,
       date: { type: Date, default: Date.now },
     },
   ],
