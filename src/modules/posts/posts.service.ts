@@ -1,6 +1,6 @@
 import { HttpException } from "@core/exceptions";
 import CreatePostDTO from "./dtos/create_post.dto";
-import { IComment, ILike, IPost } from "./posts.interface";
+import { IComment, ILike, IPost, IShare } from "./posts.interface";
 import PostSchema from "./posts.model";
 import { UserSchema } from "@modules/users";
 import { IPagination } from "@core/interfaces";
@@ -113,6 +113,10 @@ export default class PostService {
           path: "comments",
           populate: { path: "user", select: this.selectField },
         },
+        {
+          path: "shares",
+          populate: { path: "user", select: this.selectField },
+        },
       ])
       .exec();
 
@@ -142,6 +146,10 @@ export default class PostService {
           path: "comments",
           populate: { path: "user", select: this.selectField },
         },
+        {
+          path: "shares",
+          populate: { path: "user", select: this.selectField },
+        },
       ])
       .exec();
     if (!post) {
@@ -157,10 +165,7 @@ export default class PostService {
   }
 
   public async likePost(userId: string, postId: string): Promise<ILike[]> {
-    const post = await this.postSchema
-      .findById(postId)
-      .populate("user", ["last_name", "first_name", "avatar"])
-      .exec();
+    const post = await this.postSchema.findById(postId).exec();
     if (!post) {
       throw new HttpException(400, "Post is not found");
     }
@@ -172,6 +177,10 @@ export default class PostService {
     }
 
     await post.save();
+    await post.populate({
+      path: "likes",
+      populate: { path: "user", select: this.selectField },
+    });
     return post.likes;
   }
 
@@ -235,5 +244,54 @@ export default class PostService {
       },
     });
     return post.comments;
+  }
+
+  public async sharePost(userId: string, postId: string): Promise<IShare[]> {
+    const post = await this.postSchema.findById(postId).exec();
+    if (!post) {
+      throw new HttpException(400, "Post is not found");
+    }
+
+    if (
+      post.shares &&
+      post.shares.some((share: IShare) => share.user.toString() === userId)
+    ) {
+      throw new HttpException(400, "Post is already shared");
+    }
+    if (!post.shares) post.shares = [];
+    post.shares.unshift({ user: userId });
+
+    await post.save();
+    await post.populate({
+      path: "shares",
+      populate: { path: "user", select: this.selectField },
+    });
+    return post.shares;
+  }
+
+  public async removeShared(userId: string, postId: string): Promise<IShare[]> {
+    const post = await this.postSchema.findById(postId).exec();
+    if (!post) {
+      throw new HttpException(400, "Post is not found");
+    }
+
+    if (
+      post.shares &&
+      !post.shares.some((share: IShare) => share.user.toString() === userId)
+    ) {
+      throw new HttpException(400, "Post has not yet been shared");
+    }
+    if (!post.shares) post.shares = [];
+
+    post.shares = post.shares.filter(
+      (share: IShare) => share.user.toString() !== userId
+    );
+
+    await post.save();
+    await post.populate({
+      path: "shares",
+      populate: { path: "user", select: this.selectField },
+    });
+    return post.shares;
   }
 }

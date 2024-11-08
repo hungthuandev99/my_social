@@ -33,6 +33,16 @@ const PostSchema = new mongoose.Schema({
       date: { type: Date, default: Date.now },
     },
   ],
+
+  shares: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+      date: { type: Date, default: Date.now },
+    },
+  ],
   date: { type: Date, default: Date.now },
 });
 
