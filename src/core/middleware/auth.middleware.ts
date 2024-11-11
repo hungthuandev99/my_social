@@ -16,8 +16,6 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     req.user.id = user.id;
     next();
   } catch (error) {
-    console.log(error);
-
     res.status(401).json(new Result(undefined, "Unauthorized Access"));
   }
 };

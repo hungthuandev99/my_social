@@ -47,6 +47,22 @@ const ProfileSchema = new mongoose.Schema({
     facebook: String,
     instagram: String,
   },
+  followings: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+    },
+  ],
+  followers: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+    },
+  ],
   date: {
     type: Date,
     default: Date.now,

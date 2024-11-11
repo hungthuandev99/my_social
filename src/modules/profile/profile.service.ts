@@ -8,6 +8,7 @@ import {
   IProfile,
   IExperience,
   IEducation,
+  IFollow,
 } from "./profile.interface";
 import AddExperienceDTO from "./dtos/add_experience.dto";
 import AddEducationDTO from "./dtos/add_education.dto";
@@ -15,12 +16,23 @@ import AddEducationDTO from "./dtos/add_education.dto";
 class ProfileService {
   public profileSchema = ProfileSchema;
   public userSchema = UserSchema;
+  public selectFields = ["first_name", "last_name", "avatar"];
 
   public async getCurrentProfile(userId: string): Promise<Partial<IUser>> {
-    const user = await this.profileSchema
-      .findOne({ user: userId })
-      .populate("user", ["last_name", "first_name", "avatar"]);
-    console.log(user);
+    const user = await this.profileSchema.findOne({ user: userId }).populate([
+      {
+        path: "user",
+        select: this.selectFields,
+      },
+      {
+        path: "followers",
+        populate: { path: "user", select: this.selectFields },
+      },
+      {
+        path: "followings",
+        populate: { path: "user", select: this.selectFields },
+      },
+    ]);
 
     if (!user) {
       throw new HttpException(400, "There is no profile for this user");
@@ -75,7 +87,6 @@ class ProfileService {
     }
 
     profileFields.socials = socialFields;
-    console.log(profileFields);
 
     const profile = await this.profileSchema
       .findOneAndUpdate(
@@ -89,6 +100,20 @@ class ProfileService {
           setDefaultsOnInsert: true,
         }
       )
+      .populate([
+        {
+          path: "user",
+          select: this.selectFields,
+        },
+        {
+          path: "followers",
+          populate: { path: "user", select: this.selectFields },
+        },
+        {
+          path: "followings",
+          populate: { path: "user", select: this.selectFields },
+        },
+      ])
       .exec();
     return profile;
   }
@@ -114,6 +139,20 @@ class ProfileService {
     }
     profile.experiences.unshift(newExperience as IExperience);
     await profile.save();
+    await profile.populate([
+      {
+        path: "user",
+        select: this.selectFields,
+      },
+      {
+        path: "followers",
+        populate: { path: "user", select: this.selectFields },
+      },
+      {
+        path: "followings",
+        populate: { path: "user", select: this.selectFields },
+      },
+    ]);
     return profile;
   }
 
@@ -121,7 +160,23 @@ class ProfileService {
     userId: string,
     experienceId: string
   ): Promise<IProfile> {
-    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    const profile = await this.profileSchema
+      .findOne({ user: userId })
+      .populate([
+        {
+          path: "user",
+          select: this.selectFields,
+        },
+        {
+          path: "followers",
+          populate: { path: "user", select: this.selectFields },
+        },
+        {
+          path: "followings",
+          populate: { path: "user", select: this.selectFields },
+        },
+      ])
+      .exec();
     if (!profile) {
       throw new HttpException(400, "There is not profile for this user");
     }
@@ -140,7 +195,23 @@ class ProfileService {
       ...education,
     };
 
-    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    const profile = await this.profileSchema
+      .findOne({ user: userId })
+      .populate([
+        {
+          path: "user",
+          select: this.selectFields,
+        },
+        {
+          path: "followers",
+          populate: { path: "user", select: this.selectFields },
+        },
+        {
+          path: "followings",
+          populate: { path: "user", select: this.selectFields },
+        },
+      ])
+      .exec();
     if (!profile) {
       throw new HttpException(400, "There is not profile for this user");
     }
@@ -153,7 +224,23 @@ class ProfileService {
     userId: string,
     educationId: string
   ): Promise<IProfile> {
-    const profile = await this.profileSchema.findOne({ user: userId }).exec();
+    const profile = await this.profileSchema
+      .findOne({ user: userId })
+      .populate([
+        {
+          path: "user",
+          select: this.selectFields,
+        },
+        {
+          path: "followers",
+          populate: { path: "user", select: this.selectFields },
+        },
+        {
+          path: "followings",
+          populate: { path: "user", select: this.selectFields },
+        },
+      ])
+      .exec();
     if (!profile) {
       throw new HttpException(400, "There is not profile for this user");
     }
@@ -162,6 +249,117 @@ class ProfileService {
     );
     await profile.save();
     return profile;
+  }
+
+  public async follow(fromUser: string, toUser: string): Promise<IFollow[]> {
+    const fromProfile = await this.profileSchema
+      .findOne({ user: fromUser })
+      .exec();
+    if (!fromProfile) {
+      throw new HttpException(400, "There is not profile for your user");
+    }
+
+    const toProfile = await this.profileSchema.findOne({ user: toUser }).exec();
+    if (!toProfile) {
+      throw new HttpException(400, "There is not profile for target user");
+    }
+
+    if (
+      toProfile.followers &&
+      toProfile.followers.some((follow) => follow.user.toString() === fromUser)
+    ) {
+      throw new HttpException(
+        400,
+        "Target user has already been followed from user"
+      );
+    }
+
+    if (
+      fromProfile.followings &&
+      fromProfile.followings.some(
+        (follow: IFollow) => follow.user.toString() === toUser
+      )
+    ) {
+      throw new HttpException(400, "Profile has been followed");
+    }
+    if (!fromProfile.followings) fromProfile.followings = [];
+    fromProfile.followings.unshift({ user: toUser });
+    if (!toProfile.followers) toProfile.followers = [];
+    toProfile.followers.unshift({ user: fromUser });
+    await fromProfile.save();
+    await toProfile.save();
+    await fromProfile.populate([
+      {
+        path: "user",
+        select: this.selectFields,
+      },
+      {
+        path: "followers",
+        populate: { path: "user", select: this.selectFields },
+      },
+      {
+        path: "followings",
+        populate: { path: "user", select: this.selectFields },
+      },
+    ]);
+    return fromProfile.followings;
+  }
+
+  public async unfollow(fromUser: string, toUser: string) {
+    const fromProfile = await this.profileSchema
+      .findOne({ user: fromUser })
+      .exec();
+    if (!fromProfile) {
+      throw new HttpException(400, "There is not profile for your user");
+    }
+
+    const toProfile = await this.profileSchema.findOne({ user: toUser }).exec();
+    if (!toProfile) {
+      throw new HttpException(400, "There is not profile for target user");
+    }
+
+    if (
+      toProfile.followers &&
+      !toProfile.followers.some((follow) => follow.user.toString() === fromUser)
+    ) {
+      throw new HttpException(400, "You has not being followed this user");
+    }
+
+    if (
+      fromProfile.followings &&
+      !fromProfile.followings.some(
+        (follow: IFollow) => follow.user.toString() === toUser
+      )
+    ) {
+      throw new HttpException(400, "You has not been yet followed this user");
+    }
+    if (!fromProfile.followings) fromProfile.followings = [];
+    fromProfile.followings = fromProfile.followings.filter(
+      ({ user }) => user.toString() !== toUser
+    );
+
+    if (!toProfile.followers) toProfile.followers = [];
+    toProfile.followers = toProfile.followers.filter(
+      ({ user }) => user.toString() !== fromUser
+    );
+
+    await fromProfile.save();
+    await toProfile.save();
+    await fromProfile.populate([
+      {
+        path: "user",
+        select: this.selectFields,
+      },
+      {
+        path: "followers",
+        populate: { path: "user", select: this.selectFields },
+      },
+      {
+        path: "followings",
+        populate: { path: "user", select: this.selectFields },
+      },
+    ]);
+    return fromProfile.followings;
   }
 }
 

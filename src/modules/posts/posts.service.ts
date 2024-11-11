@@ -9,7 +9,7 @@ import CreateCommentDTO from "./dtos/create_comment.dto";
 export default class PostService {
   public postSchema = PostSchema;
   public userSchema = UserSchema;
-  private selectField = ["first_name", "last_name", "avatar"];
+  private selectFields = ["first_name", "last_name", "avatar"];
 
   public async createPost(
     userId: string,
@@ -30,7 +30,7 @@ export default class PostService {
     });
 
     const post = await newPost.save();
-    return post.populate("user", this.selectField);
+    return post.populate("user", this.selectFields);
   }
 
   public async updatePost(
@@ -42,15 +42,15 @@ export default class PostService {
       .populate([
         {
           path: "user",
-          select: this.selectField,
+          select: this.selectFields,
         },
         {
           path: "likes",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "comments",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
       ])
       .exec();
@@ -66,15 +66,15 @@ export default class PostService {
       .populate([
         {
           path: "user",
-          select: this.selectField,
+          select: this.selectFields,
         },
         {
           path: "likes",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "comments",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
       ])
       .exec();
@@ -103,19 +103,19 @@ export default class PostService {
       .populate([
         {
           path: "user",
-          select: this.selectField,
+          select: this.selectFields,
         },
         {
           path: "likes",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "comments",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "shares",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
       ])
       .exec();
@@ -136,19 +136,19 @@ export default class PostService {
       .populate([
         {
           path: "user",
-          select: this.selectField,
+          select: this.selectFields,
         },
         {
           path: "likes",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "comments",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
         {
           path: "shares",
-          populate: { path: "user", select: this.selectField },
+          populate: { path: "user", select: this.selectFields },
         },
       ])
       .exec();
@@ -179,7 +179,7 @@ export default class PostService {
     await post.save();
     await post.populate({
       path: "likes",
-      populate: { path: "user", select: this.selectField },
+      populate: { path: "user", select: this.selectFields },
     });
     return post.likes;
   }
@@ -205,7 +205,7 @@ export default class PostService {
       path: "comments",
       populate: {
         path: "user",
-        select: this.selectField,
+        select: this.selectFields,
       },
     });
     return post.comments;
@@ -240,7 +240,7 @@ export default class PostService {
       path: "comments",
       populate: {
         path: "user",
-        select: this.selectField,
+        select: this.selectFields,
       },
     });
     return post.comments;
@@ -264,7 +264,7 @@ export default class PostService {
     await post.save();
     await post.populate({
       path: "shares",
-      populate: { path: "user", select: this.selectField },
+      populate: { path: "user", select: this.selectFields },
     });
     return post.shares;
   }
@@ -290,7 +290,7 @@ export default class PostService {
     await post.save();
     await post.populate({
       path: "shares",
-      populate: { path: "user", select: this.selectField },
+      populate: { path: "user", select: this.selectFields },
     });
     return post.shares;
   }

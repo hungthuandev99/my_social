@@ -139,4 +139,26 @@ export default class ProfileController {
       next(error);
     }
   };
+
+  public follow = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const fromUser = req.user.id;
+      const toUser = req.params.id;
+      const followers = await this.profileService.follow(fromUser, toUser);
+      res.status(200).json(new Result(followers));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public unfollow = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const fromUser = req.user.id;
+      const toUser = req.params.id;
+      const followers = await this.profileService.unfollow(fromUser, toUser);
+      res.status(200).json(new Result(followers));
+    } catch (error) {
+      next(error);
+    }
+  };
 }
