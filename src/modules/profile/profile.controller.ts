@@ -161,4 +161,48 @@ export default class ProfileController {
       next(error);
     }
   };
+
+  public addFriend = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const fromUser = req.user.id;
+      const toUser = req.params.id;
+      const profile = await this.profileService.addFriend(fromUser, toUser);
+      res.status(200).json(new Result(profile));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public unfriend = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const fromUser = req.user.id;
+      const toUser = req.params.id;
+      const profile = await this.profileService.unfriend(fromUser, toUser);
+      res.status(200).json(new Result(profile));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public acceptFriend = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const currentUser = req.user.id;
+      const requestUser = req.params.id;
+      const profile = await this.profileService.acceptFriendRequest(
+        currentUser,
+        requestUser
+      );
+      res.status(200).json(new Result(profile));
+    } catch (error) {
+      next(error);
+    }
+  };
 }
