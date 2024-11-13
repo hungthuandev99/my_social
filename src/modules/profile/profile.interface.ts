@@ -12,6 +12,9 @@ export interface IProfile {
   socials: ISocial;
   followings: IFollow[];
   followers: IFollow[];
+  friends: IFriend[];
+  friend_requests: IFriend[];
+  friend_request_sent: IFriend[];
   date: Date;
 }
 
@@ -47,4 +50,9 @@ export interface ISocial extends Record<string, string> {
 
 export interface IFollow {
   user: string;
+}
+
+export interface IFriend {
+  user: string;
+  date_request: Date;
 }
