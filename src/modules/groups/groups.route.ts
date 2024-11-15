@@ -1,6 +1,7 @@
 import { Router } from "express";
 import GroupController from "./groups.controller";
-import { authMiddleware } from "@core/middleware";
+import { authMiddleware, validationInputMiddleware } from "@core/middleware";
+import CreateGroupDTO from "./dtos/create_group.dto";
 
 export default class GroupRoute {
   public path = "/groups";
@@ -12,6 +13,24 @@ export default class GroupRoute {
 
   private initializeRoutes() {
     this.router.get(this.path, authMiddleware, this.controller.getAllGroup);
-    this.router.post(this.path, authMiddleware, this.controller.createGroup);
+    this.router.post(
+      this.path,
+      authMiddleware,
+      validationInputMiddleware(CreateGroupDTO),
+      this.controller.createGroup
+    );
+
+    this.router.put(
+      this.path + "/:id",
+      authMiddleware,
+      validationInputMiddleware(CreateGroupDTO),
+      this.controller.updateGroup
+    );
+
+    this.router.delete(
+      this.path + "/:id",
+      authMiddleware,
+      this.controller.deleteGroup
+    );
   }
 }

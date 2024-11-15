@@ -42,4 +42,44 @@ export default class GroupService {
     const groups = await this.groupSchema.find().exec();
     return groups;
   }
+
+  public async updateGroup(
+    groupId: string,
+    groupDTO: CreateGroupDTO
+  ): Promise<IGroup> {
+    const group = await this.groupSchema.findById(groupId);
+    if (!group) {
+      throw new HttpException(400, "Group is not exist");
+    }
+
+    const existGroup = await this.groupSchema.find({
+      $and: [
+        { $or: [{ name: groupDTO.name }, { code: groupDTO.code }] },
+        { _id: { $ne: groupId } },
+      ],
+    });
+
+    if (existGroup.length > 0) {
+      throw new HttpException(400, "Name or code existed");
+    }
+
+    const updateFields = { ...groupDTO };
+
+    const updatedGroup = await this.groupSchema
+      .findOneAndUpdate({ _id: groupId }, { $set: updateFields }, { new: true })
+      .exec();
+
+    if (!updatedGroup) {
+      throw new HttpException(400, "Update is not success");
+    }
+    return updatedGroup!;
+  }
+
+  public async deleteGroup(groupId: string): Promise<IGroup> {
+    const deletedGroup = await this.groupSchema.findByIdAndDelete(groupId);
+    if (!deletedGroup) {
+      throw new HttpException(400, "Delete is not success");
+    }
+    return deletedGroup;
+  }
 }
