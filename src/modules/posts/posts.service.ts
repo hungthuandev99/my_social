@@ -10,6 +10,24 @@ export default class PostService {
   public postSchema = PostSchema;
   public userSchema = UserSchema;
   private selectFields = ["first_name", "last_name", "avatar"];
+  public referenceFields = [
+    {
+      path: "user",
+      select: this.selectFields,
+    },
+    {
+      path: "likes",
+      populate: { path: "user", select: this.selectFields },
+    },
+    {
+      path: "comments",
+      populate: { path: "user", select: this.selectFields },
+    },
+    {
+      path: "shares",
+      populate: { path: "user", select: this.selectFields },
+    },
+  ];
 
   public async createPost(
     userId: string,
@@ -39,20 +57,7 @@ export default class PostService {
   ): Promise<IPost> {
     const post = await this.postSchema
       .findByIdAndUpdate(postId, { ...postDTO }, { new: true })
-      .populate([
-        {
-          path: "user",
-          select: this.selectFields,
-        },
-        {
-          path: "likes",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "comments",
-          populate: { path: "user", select: this.selectFields },
-        },
-      ])
+      .populate(this.referenceFields)
       .exec();
     if (!post) {
       throw new HttpException(400, "Post is not found");
@@ -63,20 +68,7 @@ export default class PostService {
   public async getPostById(postId: string): Promise<IPost> {
     const post = await this.postSchema
       .findById(postId)
-      .populate([
-        {
-          path: "user",
-          select: this.selectFields,
-        },
-        {
-          path: "likes",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "comments",
-          populate: { path: "user", select: this.selectFields },
-        },
-      ])
+      .populate(this.referenceFields)
       .exec();
     if (!post) {
       throw new HttpException(404, "This post is not found");
@@ -100,24 +92,7 @@ export default class PostService {
       .find(query)
       .skip(pageSize * (page - 1))
       .limit(pageSize)
-      .populate([
-        {
-          path: "user",
-          select: this.selectFields,
-        },
-        {
-          path: "likes",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "comments",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "shares",
-          populate: { path: "user", select: this.selectFields },
-        },
-      ])
+      .populate(this.referenceFields)
       .exec();
 
     const rowCount = await this.postSchema.find(query).countDocuments().exec();
@@ -133,24 +108,7 @@ export default class PostService {
   public async deletePost(userId: string, postId: string): Promise<IPost> {
     const post = await this.postSchema
       .findById(postId)
-      .populate([
-        {
-          path: "user",
-          select: this.selectFields,
-        },
-        {
-          path: "likes",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "comments",
-          populate: { path: "user", select: this.selectFields },
-        },
-        {
-          path: "shares",
-          populate: { path: "user", select: this.selectFields },
-        },
-      ])
+      .populate(this.referenceFields)
       .exec();
     if (!post) {
       throw new HttpException(400, "Post is not found");
@@ -177,10 +135,7 @@ export default class PostService {
     }
 
     await post.save();
-    await post.populate({
-      path: "likes",
-      populate: { path: "user", select: this.selectFields },
-    });
+    await post.populate(this.referenceFields);
     return post.likes;
   }
 
@@ -201,13 +156,7 @@ export default class PostService {
 
     post.comments.unshift(newComment as IComment);
     await post.save();
-    await post.populate({
-      path: "comments",
-      populate: {
-        path: "user",
-        select: this.selectFields,
-      },
-    });
+    await post.populate(this.referenceFields);
     return post.comments;
   }
 
@@ -236,13 +185,7 @@ export default class PostService {
       ({ _id }) => _id.toString() !== commentId
     );
     await post.save();
-    await post.populate({
-      path: "comments",
-      populate: {
-        path: "user",
-        select: this.selectFields,
-      },
-    });
+    await post.populate(this.referenceFields);
     return post.comments;
   }
 
@@ -262,10 +205,7 @@ export default class PostService {
     post.shares.unshift({ user: userId });
 
     await post.save();
-    await post.populate({
-      path: "shares",
-      populate: { path: "user", select: this.selectFields },
-    });
+    await post.populate(this.referenceFields);
     return post.shares;
   }
 
@@ -288,10 +228,7 @@ export default class PostService {
     );
 
     await post.save();
-    await post.populate({
-      path: "shares",
-      populate: { path: "user", select: this.selectFields },
-    });
+    await post.populate(this.referenceFields);
     return post.shares;
   }
 }
