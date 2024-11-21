@@ -32,5 +32,16 @@ export default class GroupRoute {
       authMiddleware,
       this.controller.deleteGroup
     );
+
+    this.router.post(
+      this.path + "/request/:id",
+      authMiddleware,
+      this.controller.joinGroup
+    );
+    this.router.post(
+      this.path + "/approve",
+      authMiddleware,
+      this.controller.approveJoinRequest
+    );
   }
 }
