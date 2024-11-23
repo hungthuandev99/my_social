@@ -2,6 +2,7 @@ import { Router } from "express";
 import GroupController from "./groups.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreateGroupDTO from "./dtos/create_group.dto";
+import AddManagerDTO from "./dtos/add_manager.dto";
 
 export default class GroupRoute {
   public path = "/groups";
@@ -42,6 +43,19 @@ export default class GroupRoute {
       this.path + "/approve",
       authMiddleware,
       this.controller.approveJoinRequest
+    );
+
+    this.router.post(
+      this.path + "/add_manager",
+      authMiddleware,
+      validationInputMiddleware(AddManagerDTO),
+      this.controller.addManager
+    );
+
+    this.router.delete(
+      this.path + "/delete_manager",
+      authMiddleware,
+      this.controller.deleteManager
     );
   }
 }

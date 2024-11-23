@@ -100,4 +100,40 @@ export default class GroupController {
       next(error);
     }
   };
+
+  public addManager = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const addManagerDTO = req.body;
+      const group = await this.groupService.addManager(
+        req.user.id,
+        addManagerDTO
+      );
+      res.status(200).json(new Result(group));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public deleteManager = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.query.user_id as string;
+      const groupId = req.query.group_id as string;
+      const group = await this.groupService.deleteManager(
+        req.user.id,
+        userId,
+        groupId
+      );
+      res.status(200).json(new Result(group));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -1,3 +1,5 @@
+import { GroupManagerRole } from "@core/enums";
+
 export default interface IGroup {
   _id: string;
   name: string;
@@ -17,5 +19,5 @@ export interface IMember {
 
 export interface IManager {
   user: string;
-  role: string;
+  role: GroupManagerRole;
 }
