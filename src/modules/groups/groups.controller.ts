@@ -136,4 +136,18 @@ export default class GroupController {
       next(error);
     }
   };
+
+  public getMemberList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const groupId = req.params.id;
+      const members = await this.groupService.getMemberList(groupId);
+      res.status(200).json(new Result(members));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

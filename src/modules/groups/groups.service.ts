@@ -57,6 +57,8 @@ export default class GroupService {
     });
 
     newGroup.creator = userId;
+    newGroup.members = [];
+    newGroup.members.unshift({ user: userId } as IMember);
 
     const groupCreated = await newGroup.save();
     return groupCreated;
@@ -338,5 +340,18 @@ export default class GroupService {
       admin.role === GroupManagerRole.admin &&
       user.role !== GroupManagerRole.admin
     );
+  }
+
+  public async getMemberList(groupId: string): Promise<IMember[]> {
+    const group = await this.groupSchema
+      .findById(groupId)
+      .populate(this.referenceFields)
+      .exec();
+
+    if (!group) {
+      throw new HttpException(400, "Group is not exist");
+    }
+
+    return group.members;
   }
 }

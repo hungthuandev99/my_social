@@ -57,5 +57,11 @@ export default class GroupRoute {
       authMiddleware,
       this.controller.deleteManager
     );
+
+    this.router.get(
+      this.path + "/member/:id",
+      authMiddleware,
+      this.controller.getMemberList
+    );
   }
 }
