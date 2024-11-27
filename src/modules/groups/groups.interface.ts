@@ -1,23 +1,21 @@
-import { GroupManagerRole } from "@core/enums";
-
 export default interface IGroup {
   _id: string;
   name: string;
   code: string;
   description: string;
   members: IMember[];
-  member_requests: IMember[];
-  managers: IManager[];
+  member_requests: IRequest[];
   date: Date;
-  creator: string;
 }
 
 export interface IMember {
   user: string;
   date: Date;
+  role: string;
+  level: number;
 }
 
-export interface IManager {
+export interface IRequest {
   user: string;
-  role: GroupManagerRole;
+  date: Date;
 }

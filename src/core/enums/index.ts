@@ -1,3 +1,3 @@
-import { GroupManagerRole } from "./group_manager_role";
+import { GroupRole } from "./group_manager_role";
 
-export { GroupManagerRole };
+export { GroupRole };

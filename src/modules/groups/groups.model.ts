@@ -24,6 +24,15 @@ const GroupSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
       },
+      role: {
+        type: String,
+        enum: ["creator", "admin", "mod", "member"],
+        default: "member",
+      },
+      level: {
+        type: Number,
+        default: 0,
+      },
     },
   ],
   member_requests: [
@@ -38,23 +47,6 @@ const GroupSchema = new mongoose.Schema({
       },
     },
   ],
-  managers: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-      },
-      role: {
-        type: String,
-        enum: ["admin", "mod"],
-        default: "admin",
-      },
-    },
-  ],
-  creator: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
-  },
   date: { type: Date, default: Date.now },
 });
 

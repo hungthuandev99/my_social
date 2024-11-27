@@ -5,6 +5,33 @@ import { Result } from "@core/utils";
 export default class GroupController {
   public groupService = new GroupService();
 
+  public getAllGroup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const groups = await this.groupService.getAllGroup();
+      res.status(200).json(new Result(groups));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getGroupById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const groupId = req.params.id;
+      const group = await this.groupService.getGroupById(groupId);
+      res.status(200).json(new Result(group));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public createGroup = async (
     req: Request,
     res: Response,
@@ -20,19 +47,6 @@ export default class GroupController {
     }
   };
 
-  public getAllGroup = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const groups = await this.groupService.getAllGroup();
-      res.status(200).json(new Result(groups));
-    } catch (error) {
-      next(error);
-    }
-  };
-
   public updateGroup = async (
     req: Request,
     res: Response,
@@ -42,6 +56,7 @@ export default class GroupController {
       const groupId = req.params.id;
       const groupDTO = req.body;
       const updatedGroup = await this.groupService.updateGroup(
+        req.user.id,
         groupId,
         groupDTO
       );
@@ -59,7 +74,10 @@ export default class GroupController {
     try {
       const groupId = req.params.id;
 
-      const deletedGroup = await this.groupService.deleteGroup(groupId);
+      const deletedGroup = await this.groupService.deleteGroup(
+        req.user.id,
+        groupId
+      );
       res.status(200).json(new Result(deletedGroup));
     } catch (error) {
       next(error);

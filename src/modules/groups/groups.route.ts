@@ -14,6 +14,11 @@ export default class GroupRoute {
 
   private initializeRoutes() {
     this.router.get(this.path, authMiddleware, this.controller.getAllGroup);
+    this.router.get(
+      this.path + "/:id",
+      authMiddleware,
+      this.controller.getGroupById
+    );
     this.router.post(
       this.path,
       authMiddleware,
@@ -29,7 +34,7 @@ export default class GroupRoute {
     );
 
     this.router.delete(
-      this.path + "/:id",
+      this.path + "/delete_group/:id",
       authMiddleware,
       this.controller.deleteGroup
     );

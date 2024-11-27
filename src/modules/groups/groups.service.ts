@@ -1,9 +1,9 @@
 import { UserSchema } from "@modules/users";
 import CreateGroupDTO from "./dtos/create_group.dto";
-import IGroup, { IManager, IMember } from "./groups.interface";
+import IGroup, { IRequest, IMember } from "./groups.interface";
 import GroupSchema from "./groups.model";
 import { HttpException } from "@core/exceptions";
-import { GroupManagerRole } from "@core/enums";
+import { GroupRole } from "@core/enums";
 import AddManagerDTO from "./dtos/add_manager.dto";
 
 export default class GroupService {
@@ -13,10 +13,6 @@ export default class GroupService {
   private selectFields = ["first_name", "last_name", "avatar"];
   public referenceFields = [
     {
-      path: "creator",
-      select: this.selectFields,
-    },
-    {
       path: "members",
       populate: { path: "user", select: this.selectFields },
     },
@@ -24,11 +20,28 @@ export default class GroupService {
       path: "member_requests",
       populate: { path: "user", select: this.selectFields },
     },
-    {
-      path: "managers",
-      populate: { path: "user", select: this.selectFields },
-    },
   ];
+
+  public async getAllGroup(): Promise<IGroup[]> {
+    const groups = await this.groupSchema
+      .find()
+      .populate(this.referenceFields)
+      .exec();
+
+    return groups;
+  }
+
+  public async getGroupById(groupId: string): Promise<IGroup> {
+    const group = await this.groupSchema
+      .findById(groupId)
+      .populate(this.referenceFields)
+      .exec();
+    if (!group) {
+      throw new HttpException(400, "Group is not exist");
+    }
+
+    return group;
+  }
 
   public async createGroup(
     userId: string,
@@ -56,30 +69,42 @@ export default class GroupService {
       ...groupDTO,
     });
 
-    newGroup.creator = userId;
     newGroup.members = [];
-    newGroup.members.unshift({ user: userId } as IMember);
+    newGroup.members.unshift({
+      user: userId,
+      role: GroupRole.creator.value,
+      level: GroupRole.creator.level,
+    } as IMember);
 
     const groupCreated = await newGroup.save();
+    await groupCreated.populate(this.referenceFields);
     return groupCreated;
   }
 
-  public async getAllGroup(): Promise<IGroup[]> {
-    const groups = await this.groupSchema
-      .find()
-      .populate(this.referenceFields)
-      .exec();
-
-    return groups;
-  }
-
   public async updateGroup(
+    userId: string,
     groupId: string,
     groupDTO: CreateGroupDTO
   ): Promise<IGroup> {
-    const group = await this.groupSchema.findById(groupId);
+    const group = await this.groupSchema.findById(groupId).exec();
     if (!group) {
       throw new HttpException(400, "Group is not exist");
+    }
+
+    const user = await this.userSchema
+      .findById(userId)
+      .select("-password")
+      .exec();
+    if (!user) {
+      throw new HttpException(400, "User id is not exist");
+    }
+
+    const censor = group.members.find(
+      (member) => member.user.toString() === userId
+    );
+
+    if (!censor || censor.level < GroupRole.admin.level) {
+      throw new HttpException(400, "You don't have permission");
     }
 
     const existGroup = await this.groupSchema.find({
@@ -106,7 +131,28 @@ export default class GroupService {
     return updatedGroup!;
   }
 
-  public async deleteGroup(groupId: string): Promise<IGroup> {
+  public async deleteGroup(userId: string, groupId: string): Promise<IGroup> {
+    const group = await this.groupSchema.findById(groupId).exec();
+    if (!group) {
+      throw new HttpException(400, "Group is not exist");
+    }
+
+    const user = await this.userSchema
+      .findById(userId)
+      .select("-password")
+      .exec();
+    if (!user) {
+      throw new HttpException(400, "User id is not exist");
+    }
+
+    const censor = group.members.find(
+      (member) => member.user.toString() === userId
+    );
+
+    if (!censor || censor.role !== GroupRole.creator.value) {
+      throw new HttpException(400, "You don't have permission");
+    }
+
     const deletedGroup = await this.groupSchema
       .findByIdAndDelete(groupId)
       .populate(this.referenceFields)
@@ -123,10 +169,14 @@ export default class GroupService {
       throw new HttpException(400, "Group is not exist");
     }
 
-    const user = await this.userSchema.findById(userId).exec();
+    const user = await this.userSchema
+      .findById(userId)
+      .select("-password")
+      .exec();
     if (!user) {
       throw new HttpException(400, "User is not exist");
     }
+
     if (
       group.member_requests &&
       group.member_requests.some(({ user }) => user.toString() === userId)
@@ -165,16 +215,25 @@ export default class GroupService {
       throw new HttpException(400, "Group is not exist");
     }
 
-    const admin = await this.userSchema.findById(censor).exec();
+    const admin = await this.userSchema
+      .findById(censor)
+      .select("-password")
+      .exec();
     if (
       !admin ||
-      (group.creator.toString() !== censor &&
-        !group.managers.some(({ user }) => user.toString() === censor))
+      !group.members.some(
+        (member) =>
+          member.user.toString() === censor &&
+          member.level >= GroupRole.admin.level
+      )
     ) {
       throw new HttpException(400, "You don't have permission");
     }
 
-    const user = await this.userSchema.findById(userId).exec();
+    const user = await this.userSchema
+      .findById(userId)
+      .select("-password")
+      .exec();
     if (!user) {
       throw new HttpException(400, "User is not exist");
     }
@@ -204,17 +263,28 @@ export default class GroupService {
     const group = await this.groupSchema
       .findById(addManagerDTO.group_id)
       .exec();
+
     if (!group) {
       throw new HttpException(400, "Group is not exist");
     }
 
-    const admin = await this.userSchema.findById(adminId).exec();
+    const admin = await this.userSchema
+      .findById(adminId)
+      .select("-password")
+      .exec();
 
     if (!admin) {
       throw new HttpException(400, "Your account don't exist");
     }
 
-    if (!this.checkAddManagerPermission(adminId, addManagerDTO, group)) {
+    const censor = group.members.find(
+      (member) => member.user.toString() === adminId
+    );
+
+    if (
+      !censor ||
+      censor.level < GroupRole.getLevelFromString(addManagerDTO.role)
+    ) {
       throw new HttpException(
         400,
         "You do not have permission to perform this action"
@@ -224,28 +294,18 @@ export default class GroupService {
     if (
       group.members &&
       !group.members.some(
-        ({ user }) => user.toString() === addManagerDTO.user_id
+        (member) => member.user.toString() === addManagerDTO.user_id
       )
     ) {
       throw new HttpException(400, "This user is not a member of the group.");
     }
 
-    if (
-      group.managers &&
-      group.managers.some(
-        ({ user }) => user.toString() === addManagerDTO.user_id
-      )
-    ) {
-      throw new HttpException(
-        400,
-        "This user is already a manager of the group"
-      );
+    for (let member of group.members) {
+      if (member.user.toString() === addManagerDTO.user_id) {
+        member.role = addManagerDTO.role;
+        member.level = GroupRole.getLevelFromString(addManagerDTO.role);
+      }
     }
-
-    group.managers.unshift({
-      user: addManagerDTO.user_id,
-      role: addManagerDTO.role,
-    } as IManager);
     await group.save();
     await group.populate(this.referenceFields);
 
@@ -258,11 +318,16 @@ export default class GroupService {
     groupId: string
   ): Promise<IGroup> {
     const group = await this.groupSchema.findById(groupId).exec();
+    console.log(group);
+
     if (!group) {
       throw new HttpException(400, "Group is not exist");
     }
 
-    const admin = await this.userSchema.findById(adminId).exec();
+    const admin = await this.userSchema
+      .findById(adminId)
+      .select("-password")
+      .exec();
 
     if (!admin) {
       throw new HttpException(400, "Your account don't exist");
@@ -275,71 +340,31 @@ export default class GroupService {
       throw new HttpException(400, "This user is not a member of the group.");
     }
 
-    if (
-      group.managers &&
-      group.managers.some(({ user }) => user.toString() === userId)
-    ) {
-      throw new HttpException(
-        400,
-        "This user is already a manager of the group"
-      );
-    }
+    const censor = group.members.find(
+      (member) => member.user.toString() === adminId
+    );
+    const user = group.members.find(
+      (member) => member.user.toString() === userId
+    );
 
-    if (!this.checkDeleteManagerPermission(adminId, userId, group)) {
+    if (!censor || censor.level <= user!.level) {
       throw new HttpException(
         400,
         "You do not have permission to perform this action"
       );
     }
 
-    group.managers.filter(({ user }) => user.toString() !== userId);
+    for (let member of group.members) {
+      if (member.user.toString() === userId) {
+        member.role = GroupRole.member.value;
+        member.level = GroupRole.member.level;
+      }
+    }
+
     await group.save();
     await group.populate(this.referenceFields);
 
     return group;
-  }
-
-  private checkAddManagerPermission(
-    grantor: string,
-    add_managerDTO: AddManagerDTO,
-    group: IGroup
-  ): boolean {
-    switch (add_managerDTO.role) {
-      case GroupManagerRole.admin:
-        return group.creator.toString() === grantor;
-      case GroupManagerRole.mod:
-        const isCreator = group.creator.toString() === grantor;
-        const isAdmin = group.managers.some(
-          (manager) =>
-            manager.role === GroupManagerRole.admin &&
-            manager.user.toString() === grantor
-        );
-        return isCreator || isAdmin;
-      default:
-        return false;
-    }
-  }
-
-  private checkDeleteManagerPermission(
-    grantor: string,
-    grantee: string,
-    group: IGroup
-  ): boolean {
-    if (grantor === group.creator.toString()) {
-      return true;
-    }
-
-    const admin = group.managers.find(
-      ({ user }) => user.toString() === grantor
-    );
-    const user = group.managers.find(({ user }) => user.toString() === grantee);
-
-    if (!admin || !user) return false;
-
-    return (
-      admin.role === GroupManagerRole.admin &&
-      user.role !== GroupManagerRole.admin
-    );
   }
 
   public async getMemberList(groupId: string): Promise<IMember[]> {
@@ -352,6 +377,55 @@ export default class GroupService {
       throw new HttpException(400, "Group is not exist");
     }
 
+    return group.members;
+  }
+
+  public async deleteMember(
+    adminId: string,
+    userId: string,
+    groupId: string
+  ): Promise<IMember[]> {
+    const group = await this.groupSchema.findById(groupId).exec();
+    if (!group) {
+      throw new HttpException(400, "Group is not exist");
+    }
+
+    const admin = await this.userSchema
+      .findById(adminId)
+      .select("-password")
+      .exec();
+
+    if (!admin) {
+      throw new HttpException(400, "Your account don't exist");
+    }
+
+    if (
+      group.members &&
+      !group.members.some((member) => member.user.toString() === userId)
+    ) {
+      throw new HttpException(400, "This user is not a member of the group.");
+    }
+
+    const censor = group.members.find(
+      (member) => member.user.toString() === adminId
+    );
+
+    const user = group.members.find(
+      (member) => member.user.toString() === userId
+    );
+
+    if (!censor || censor.level <= user!.level) {
+      throw new HttpException(
+        400,
+        "You do not have permission to perform this action"
+      );
+    }
+
+    group.members = group.members.filter(
+      ({ user }) => user.toString() !== userId
+    );
+    await group.save();
+    await group.populate(this.referenceFields);
     return group.members;
   }
 }
