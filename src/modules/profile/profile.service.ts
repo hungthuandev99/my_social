@@ -1,4 +1,4 @@
-import { IUser, UserSchema } from "@modules/users";
+import { IUser, UserReferences, UserSchema } from "@modules/users";
 import ProfileSchema from "./profile.model";
 import { HttpException } from "@core/exceptions";
 import CreateProfileDTO from "./dtos/create_profile.dto";
@@ -17,33 +17,15 @@ import AddEducationDTO from "./dtos/add_education.dto";
 class ProfileService {
   public profileSchema = ProfileSchema;
   public userSchema = UserSchema;
-  public selectFields = ["first_name", "last_name", "avatar"];
-  public referenceFields = [
-    {
-      path: "user",
-      select: this.selectFields,
-    },
-    {
-      path: "followers",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "followings",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "friends",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "friend_requests",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "friend_request_sent",
-      populate: { path: "user", select: this.selectFields },
-    },
-  ];
+
+  public referenceFields = UserReferences.getPopulate([
+    "user",
+    "followers.user",
+    "followings.user",
+    "friends.user",
+    "friend_request.user",
+    "friend_request_sent.user",
+  ]);
 
   public async getCurrentProfile(userId: string): Promise<Partial<IUser>> {
     const user = await this.profileSchema

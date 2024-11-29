@@ -1,6 +1,6 @@
 import { Route } from "@core/interfaces";
 import { Router } from "express";
-import PostController from "./posts.controller";
+import PostController from "./post.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreatePostDTO from "./dtos/create_post.dto";
 

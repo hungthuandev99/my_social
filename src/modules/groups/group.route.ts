@@ -1,5 +1,5 @@
 import { Router } from "express";
-import GroupController from "./groups.controller";
+import GroupController from "./group.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import CreateGroupDTO from "./dtos/create_group.dto";
 import AddManagerDTO from "./dtos/add_manager.dto";

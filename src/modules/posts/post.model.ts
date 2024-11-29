@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IPost } from "./posts.interface";
+import { IPost } from "./post.interface";
 
 const PostSchema = new mongoose.Schema({
   user: {

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import PostService from "./posts.service";
+import PostService from "./post.service";
 import { Result } from "@core/utils";
 
 export default class PostController {

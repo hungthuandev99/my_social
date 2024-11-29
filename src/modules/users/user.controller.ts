@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import RegisterDTO from "./dtos/register.dto";
-import UserService from "./users.service";
+import UserService from "./user.service";
 import { TokenData } from "@modules/auth";
 import { Result } from "@core/utils";
 import IUser from "./user.interface";
 
-export default class UsersController {
+export default class UserController {
   private userService = new UserService();
   public register = async (req: Request, res: Response, next: NextFunction) => {
     try {

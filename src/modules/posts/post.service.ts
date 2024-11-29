@@ -1,33 +1,20 @@
 import { HttpException } from "@core/exceptions";
 import CreatePostDTO from "./dtos/create_post.dto";
-import { IComment, ILike, IPost, IShare } from "./posts.interface";
-import PostSchema from "./posts.model";
-import { UserSchema } from "@modules/users";
+import { IComment, ILike, IPost, IShare } from "./post.interface";
+import PostSchema from "./post.model";
+import { UserReferences, UserSchema } from "@modules/users";
 import { IPagination } from "@core/interfaces";
 import CreateCommentDTO from "./dtos/create_comment.dto";
 
 export default class PostService {
   public postSchema = PostSchema;
   public userSchema = UserSchema;
-  private selectFields = ["first_name", "last_name", "avatar"];
-  public referenceFields = [
-    {
-      path: "user",
-      select: this.selectFields,
-    },
-    {
-      path: "likes",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "comments",
-      populate: { path: "user", select: this.selectFields },
-    },
-    {
-      path: "shares",
-      populate: { path: "user", select: this.selectFields },
-    },
-  ];
+  public referenceFields = UserReferences.getPopulate([
+    "user",
+    "likes.user",
+    "comments.user",
+    "shares.user",
+  ]);
 
   public async createPost(
     userId: string,
@@ -48,7 +35,7 @@ export default class PostService {
     });
 
     const post = await newPost.save();
-    return post.populate("user", this.selectFields);
+    return post.populate(this.referenceFields);
   }
 
   public async updatePost(

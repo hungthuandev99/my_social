@@ -1,5 +1,6 @@
 import IUser from "./user.interface";
 import UserSchema from "./user.model";
-import UsersRoute from "./users.route";
+import UserRoute from "./user.route";
+import UserReferences from "./utils/reference_field";
 
-export { IUser, UserSchema, UsersRoute };
+export { IUser, UserSchema, UserRoute, UserReferences };

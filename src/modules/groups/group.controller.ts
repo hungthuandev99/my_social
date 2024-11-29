@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import GroupService from "./groups.service";
+import GroupService from "./group.service";
 import { Result } from "@core/utils";
 
 export default class GroupController {

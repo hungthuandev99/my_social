@@ -1,6 +1,6 @@
-import PostService from "./posts.service";
-import PostSchema from "./posts.model";
-import { IPost } from "./posts.interface";
-import PostRoute from "./posts.route";
+import PostService from "./post.service";
+import PostSchema from "./post.model";
+import { IPost } from "./post.interface";
+import PostRoute from "./post.route";
 
 export { PostSchema, IPost, PostService, PostRoute };

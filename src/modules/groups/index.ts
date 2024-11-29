@@ -1,5 +1,5 @@
-import IGroup from "./groups.interface";
-import GroupRoute from "./groups.route";
-import GroupService from "./groups.service";
+import IGroup from "./group.interface";
+import GroupRoute from "./group.route";
+import GroupService from "./group.service";
 
 export { IGroup, GroupService, GroupRoute };

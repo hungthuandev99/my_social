@@ -1,14 +1,14 @@
 import { Route } from "@core/interfaces";
 import { Router } from "express";
-import UsersController from "./users.controller";
+import UserController from "./user.controller";
 import { authMiddleware, validationInputMiddleware } from "@core/middleware";
 import RegisterDTO from "./dtos/register.dto";
 
-export default class UsersRoute implements Route {
+export default class UserRoute implements Route {
   public path = "/users";
   public router = Router();
 
-  public controller = new UsersController();
+  public controller = new UserController();
 
   constructor() {
     this.initializeRoutes();
