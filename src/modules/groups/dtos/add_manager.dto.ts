@@ -1,4 +1,3 @@
-import { GroupRole } from "@core/enums";
 import { IsNotEmpty } from "class-validator";
 
 export default class AddManagerDTO {

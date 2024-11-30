@@ -3,16 +3,17 @@ import CreateGroupDTO from "./dtos/create_group.dto";
 import IGroup, { IRequest, IMember } from "./group.interface";
 import GroupSchema from "./group.model";
 import { HttpException } from "@core/exceptions";
-import { GroupRole } from "@core/enums";
+import { GroupRole } from "./enums/group_manager_role";
 import AddManagerDTO from "./dtos/add_manager.dto";
+import { getSchemaPopulate } from "@core/utils";
 
 export default class GroupService {
   public groupSchema = GroupSchema;
   public userSchema = UserSchema;
-  private referenceFields = UserReferences.getPopulate([
-    "members.user",
-    "member_request.user",
-  ]);
+  private referenceFields = getSchemaPopulate(
+    ["members.user", "member_request.user"],
+    UserReferences.selectFields
+  );
 
   public async getAllGroup(): Promise<IGroup[]> {
     const groups = await this.groupSchema

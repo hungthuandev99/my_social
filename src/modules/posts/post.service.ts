@@ -5,16 +5,15 @@ import PostSchema from "./post.model";
 import { UserReferences, UserSchema } from "@modules/users";
 import { IPagination } from "@core/interfaces";
 import CreateCommentDTO from "./dtos/create_comment.dto";
+import { getSchemaPopulate } from "@core/utils";
 
 export default class PostService {
   public postSchema = PostSchema;
   public userSchema = UserSchema;
-  public referenceFields = UserReferences.getPopulate([
-    "user",
-    "likes.user",
-    "comments.user",
-    "shares.user",
-  ]);
+  public referenceFields = getSchemaPopulate(
+    ["user", "likes.user", "comments.user", "shares.user"],
+    UserReferences.selectFields
+  );
 
   public async createPost(
     userId: string,
