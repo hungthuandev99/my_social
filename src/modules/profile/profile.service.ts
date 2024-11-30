@@ -13,19 +13,23 @@ import {
 } from "./profile.interface";
 import AddExperienceDTO from "./dtos/add_experience.dto";
 import AddEducationDTO from "./dtos/add_education.dto";
+import { getSchemaPopulate } from "@core/utils";
 
 class ProfileService {
   public profileSchema = ProfileSchema;
   public userSchema = UserSchema;
 
-  public referenceFields = UserReferences.getPopulate([
-    "user",
-    "followers.user",
-    "followings.user",
-    "friends.user",
-    "friend_request.user",
-    "friend_request_sent.user",
-  ]);
+  public referenceFields = getSchemaPopulate(
+    [
+      "user",
+      "followers.user",
+      "followings.user",
+      "friends.user",
+      "friend_request.user",
+      "friend_request_sent.user",
+    ],
+    UserReferences.selectFields
+  );
 
   public async getCurrentProfile(userId: string): Promise<Partial<IUser>> {
     const user = await this.profileSchema
