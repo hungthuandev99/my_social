@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/server.ts",
+  "engines": {
+    "node": "22.x"
+  },
   "type": "module",
   "scripts": {
     "server": "nodemon src/server.ts",
