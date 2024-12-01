@@ -6,9 +6,8 @@
   "type": "module",
   "scripts": {
     "server": "nodemon src/server.ts",
-    "lint": "eslint . --fix",
     "run:dev": "cross-env NODE_ENV=development nodemon dist/server.cjs",
-    "lint:check": "eslint .",
+    "lint": "eslint src/**/*.ts",
     "build": "webpack"
   },
   "author": "Hung Thuan",
