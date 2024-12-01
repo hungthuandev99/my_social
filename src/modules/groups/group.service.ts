@@ -293,7 +293,7 @@ export default class GroupService {
       throw new HttpException(400, "This user is not a member of the group.");
     }
 
-    for (let member of group.members) {
+    for (const member of group.members) {
       if (member.user.toString() === addManagerDTO.user_id) {
         member.role = addManagerDTO.role;
         member.level = GroupRole.getLevelFromString(addManagerDTO.role);
@@ -311,7 +311,6 @@ export default class GroupService {
     groupId: string
   ): Promise<IGroup> {
     const group = await this.groupSchema.findById(groupId).exec();
-    console.log(group);
 
     if (!group) {
       throw new HttpException(400, "Group is not exist");
@@ -347,7 +346,7 @@ export default class GroupService {
       );
     }
 
-    for (let member of group.members) {
+    for (const member of group.members) {
       if (member.user.toString() === userId) {
         member.role = GroupRole.member.value;
         member.level = GroupRole.member.level;

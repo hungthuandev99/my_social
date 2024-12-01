@@ -116,8 +116,6 @@ class ProfileService {
     userId: string,
     experience: AddExperienceDTO
   ): Promise<IProfile> {
-    const { title, company, location, from, to, current, description } =
-      experience;
     const newExperience = {
       ...experience,
     };

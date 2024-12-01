@@ -148,7 +148,7 @@ export default class PostService {
 
   public async deleteComment(
     userId: string,
-    postId: String,
+    postId: string,
     commentId: string
   ): Promise<IComment[]> {
     const post = await this.postSchema.findById(postId).exec();

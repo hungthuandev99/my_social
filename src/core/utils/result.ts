@@ -1,5 +1,3 @@
-import { Response } from "express";
-
 class Result {
   constructor(data: any = undefined, message: any = undefined) {
     this.success = data ? true : false;

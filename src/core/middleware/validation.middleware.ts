@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { validate, ValidationError } from "class-validator";
-import { plainToClass } from "class-transformer";
+import { ClassConstructor, plainToClass } from "class-transformer";
 import { HttpException } from "@core/exceptions";
 
 const validationInputMiddleware = (

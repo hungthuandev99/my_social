@@ -3,7 +3,6 @@ import RegisterDTO from "./dtos/register.dto";
 import UserService from "./user.service";
 import { TokenData } from "@modules/auth";
 import { Result } from "@core/utils";
-import IUser from "./user.interface";
 
 export default class UserController {
   private userService = new UserService();
