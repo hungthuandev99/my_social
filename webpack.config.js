@@ -1,7 +1,7 @@
 import path from "path";
 import webpackNodeExternals from "webpack-node-externals";
-import WebpackShellPlugin from "webpack-shell-plugin";
 import TsconfigPathPlugin from "tsconfig-paths-webpack-plugin"
+import WebpackShellPluginNext from "webpack-shell-plugin-next"
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,4 +35,9 @@ export default {
             }
         ]
     },
+    plugins: [
+        new WebpackShellPluginNext({
+            onBuildEnd: ['yarn run:dev']
+        }),
+    ]
 }
