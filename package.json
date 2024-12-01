@@ -8,7 +8,7 @@
     "server": "nodemon src/server.ts",
     "run:dev": "cross-env NODE_ENV=development nodemon dist/server.cjs",
     "lint": "eslint src/**/*.ts",
-    "build": "node build --output public",
+    "build": "webpack",
     "start": "cross-env NODE_ENV=production node dist/server.cjs"
   },
   "author": "Hung Thuan",
