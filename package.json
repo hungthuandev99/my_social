@@ -12,7 +12,7 @@
     "run:dev": "cross-env NODE_ENV=development nodemon dist/server.cjs",
     "lint": "eslint src/**/*.ts",
     "build": "webpack",
-    "start": "cross-env NODE_ENV=production node dist/server.cjs"
+    "start": "node dist/server.cjs"
   },
   "author": "Hung Thuan",
   "license": "ISC",
