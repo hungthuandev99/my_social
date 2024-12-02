@@ -13,6 +13,6 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'error'
     },
-    ignores: ['**/node_modules/', '**/dist/server.cjs']
+    ignores: ['**/node_modules/']
   }
 ]
