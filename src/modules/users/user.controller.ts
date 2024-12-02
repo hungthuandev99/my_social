@@ -10,6 +10,8 @@ export default class UserController {
     try {
       const model: RegisterDTO = req.body;
       const tokenData: TokenData = await this.userService.createUser(model);
+      const io = req.app.get("socketio");
+      io.emit("user_created", `${model.email} has been registered`);
       res.status(201).json(new Result(tokenData));
     } catch (error) {
       next(error);
@@ -37,6 +39,8 @@ export default class UserController {
       const userId = req.params.id;
       const model: RegisterDTO = req.body;
       const updatedUser = await this.userService.updateUser(userId, model);
+      const io = req.app.get("socketio");
+      io.emit("user_updated", `${model.email} has been updated`);
       res.status(200).json(new Result(updatedUser));
     } catch (error) {
       next(error);
@@ -66,6 +70,8 @@ export default class UserController {
     try {
       const userId = req.params.id;
       const result = await this.userService.deleteUser(userId);
+      const io = req.app.get("socketio");
+      io.emit("user_deleted", `${result.email} has been deleted`);
       res.status(200).json(new Result(result));
     } catch (error) {
       next(error);
